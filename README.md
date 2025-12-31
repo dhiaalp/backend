@@ -60,3 +60,17 @@ Join our [Discord server](https://discord.com/invite/medusajs) to meet other com
 - [Twitter](https://twitter.com/medusajs)
 - [LinkedIn](https://www.linkedin.com/company/medusajs)
 - [Medusa Blog](https://medusajs.com/blog/)
+
+## Railway deployment
+
+This repo includes a `railway.toml` that builds with `medusa build` and starts with `medusa start`.
+
+Set these environment variables in Railway:
+
+- `DATABASE_URL` (Railway Postgres connection string)
+- `JWT_SECRET`
+- `COOKIE_SECRET`
+- `ADMIN_CORS` (e.g. your Railway domain)
+- `STORE_CORS` (e.g. your storefront domain)
+- `AUTH_CORS` (should include your admin + storefront domains)
+- `REDIS_URL` (optional; Medusa uses a fallback in-memory cache if omitted)
