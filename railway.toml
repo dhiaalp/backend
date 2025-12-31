@@ -2,4 +2,4 @@
 buildCommand = "pnpm install && pnpm run build"
 
 [deploy]
-startCommand = "pnpm run build && pnpm run start"
+startCommand = "pnpm run start"

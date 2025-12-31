@@ -2,6 +2,37 @@ import { loadEnv, defineConfig } from "@medusajs/framework/utils"
 
 loadEnv(process.env.NODE_ENV || "development", process.cwd())
 
+const modules: Record<string, unknown> = {
+  auth: {
+    resolve: "@medusajs/medusa/auth",
+    options: {
+      providers: [
+        {
+          resolve: "@medusajs/auth-emailpass",
+          id: "emailpass",
+        },
+      ],
+    },
+  },
+}
+
+if (process.env.STRIPE_API_KEY) {
+  modules.payment = {
+    resolve: "@medusajs/medusa/payment",
+    options: {
+      providers: [
+        {
+          resolve: "@medusajs/payment-stripe",
+          id: "stripe",
+          options: {
+            apiKey: process.env.STRIPE_API_KEY,
+          },
+        },
+      ],
+    },
+  }
+}
+
 export default defineConfig({
   projectConfig: {
     databaseUrl: process.env.DATABASE_URL,
@@ -13,37 +44,5 @@ export default defineConfig({
       cookieSecret: process.env.COOKIE_SECRET || "supersecret",
     },
   },
-  admin: {
-    // Ensure build/start use the same admin output directory in production.
-    outDir: ".medusa/admin",
-  },
-
-  modules: {
-    auth: {
-      resolve: "@medusajs/medusa/auth",
-      options: {
-        providers: [
-          {
-            resolve: "@medusajs/auth-emailpass",
-            id: "emailpass",
-          },
-        ],
-      },
-    },
-
-    payment: {
-      resolve: "@medusajs/medusa/payment",
-      options: {
-        providers: [
-          {
-            resolve: "@medusajs/payment-stripe",
-            id: "stripe",
-            options: {
-              apiKey: process.env.STRIPE_API_KEY,
-            },
-          },
-        ],
-      },
-    },
-  },
+  modules,
 })
