@@ -13,6 +13,10 @@ export default defineConfig({
       cookieSecret: process.env.COOKIE_SECRET || "supersecret",
     },
   },
+  admin: {
+    // Ensure build/start use the same admin output directory in production.
+    outDir: ".medusa/admin",
+  },
 
   modules: {
     auth: {
