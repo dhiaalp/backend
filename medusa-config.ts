@@ -2,7 +2,7 @@ import { loadEnv, defineConfig } from "@medusajs/framework/utils"
 
 loadEnv(process.env.NODE_ENV || "development", process.cwd())
 
-const modules: Record<string, unknown> = {
+const modules: Record<string, any> = {
   auth: {
     resolve: "@medusajs/medusa/auth",
     options: {
@@ -44,5 +44,5 @@ export default defineConfig({
       cookieSecret: process.env.COOKIE_SECRET || "supersecret",
     },
   },
-  modules,
+  modules: modules as any,
 })
