@@ -16,6 +16,34 @@ const modules: Record<string, any> = {
   },
 }
 
+if (process.env.MINIO_ENDPOINT && process.env.MINIO_ACCESS_KEY && process.env.MINIO_SECRET_KEY && process.env.MINIO_BUCKET) {
+  const useSSL = process.env.MINIO_USE_SSL === "true"
+  const publicHost = process.env.MINIO_PUBLIC_HOST
+  const port = process.env.MINIO_PORT ? Number(process.env.MINIO_PORT) : undefined
+
+  modules.file = {
+    resolve: "@medusajs/medusa/file",
+    options: {
+      providers: [
+        {
+          resolve: "@medusajs/file-s3",
+          id: "minio",
+          options: {
+            endpoint: process.env.MINIO_ENDPOINT,
+            access_key_id: process.env.MINIO_ACCESS_KEY,
+            secret_access_key: process.env.MINIO_SECRET_KEY,
+            bucket: process.env.MINIO_BUCKET,
+            region: process.env.MINIO_REGION || "us-east-1",
+            ...(port ? { port } : {}),
+            ...(useSSL ? { secure: true } : {}),
+            ...(publicHost ? { file_url: `https://${publicHost}` } : {}),
+          },
+        },
+      ],
+    },
+  }
+}
+
 if (process.env.STRIPE_API_KEY) {
   modules.payment = {
     resolve: "@medusajs/medusa/payment",
