@@ -1,6 +1,18 @@
-import { loadEnv, defineConfig } from "@medusajs/framework/utils"
+import { loadEnv, defineConfig, Modules } from "@medusajs/framework/utils"
 
 loadEnv(process.env.NODE_ENV || "development", process.cwd())
+
+const BACKEND_URL =
+  process.env.MEDUSA_BACKEND_URL ||
+  process.env.BACKEND_PUBLIC_URL ||
+  process.env.RAILWAY_PUBLIC_DOMAIN_VALUE ||
+  "http://localhost:9000"
+
+const MINIO_ENDPOINT =
+  process.env.MINIO_ENDPOINT || process.env.MINIO_PUBLIC_ENDPOINT
+const MINIO_ACCESS_KEY = process.env.MINIO_ACCESS_KEY
+const MINIO_SECRET_KEY = process.env.MINIO_SECRET_KEY
+const MINIO_BUCKET = process.env.MINIO_BUCKET
 
 const modules: Record<string, any> = {
   auth: {
@@ -14,39 +26,36 @@ const modules: Record<string, any> = {
       ],
     },
   },
-}
-
-const minioEndpoint =
-  process.env.MINIO_ENDPOINT || process.env.MINIO_PUBLIC_ENDPOINT
-const minioPort = process.env.MINIO_PORT || process.env.MINIO_PUBLIC_PORT
-const minioPublicHost =
-  process.env.MINIO_PUBLIC_HOST || process.env.MINIO_PUBLIC_ENDPOINT
-
-if (minioEndpoint && process.env.MINIO_ACCESS_KEY && process.env.MINIO_SECRET_KEY && process.env.MINIO_BUCKET) {
-  const useSSL = process.env.MINIO_USE_SSL === "true"
-  const port = minioPort ? Number(minioPort) : undefined
-
-  modules.file = {
-    resolve: "@medusajs/medusa/file",
+  file: {
+    resolve: "@medusajs/file",
     options: {
       providers: [
-        {
-          resolve: "@medusajs/file-s3",
-          id: "minio",
-          options: {
-            endpoint: minioEndpoint,
-            access_key_id: process.env.MINIO_ACCESS_KEY,
-            secret_access_key: process.env.MINIO_SECRET_KEY,
-            bucket: process.env.MINIO_BUCKET,
-            region: process.env.MINIO_REGION || "us-east-1",
-            ...(port ? { port } : {}),
-            ...(useSSL ? { secure: true } : {}),
-            ...(minioPublicHost ? { file_url: `https://${minioPublicHost}` } : {}),
-          },
-        },
+        ...(MINIO_ENDPOINT && MINIO_ACCESS_KEY && MINIO_SECRET_KEY
+          ? [
+              {
+                resolve: "./src/modules/minio-file",
+                id: "minio",
+                options: {
+                  endPoint: MINIO_ENDPOINT,
+                  accessKey: MINIO_ACCESS_KEY,
+                  secretKey: MINIO_SECRET_KEY,
+                  bucket: MINIO_BUCKET,
+                },
+              },
+            ]
+          : [
+              {
+                resolve: "@medusajs/file-local",
+                id: "local",
+                options: {
+                  upload_dir: "static",
+                  backend_url: `${BACKEND_URL}/static`,
+                },
+              },
+            ]),
       ],
     },
-  }
+  },
 }
 
 if (process.env.STRIPE_API_KEY) {
@@ -69,6 +78,7 @@ if (process.env.STRIPE_API_KEY) {
 export default defineConfig({
   projectConfig: {
     databaseUrl: process.env.DATABASE_URL,
+    redisUrl: process.env.REDIS_URL,
     http: {
       storeCors: process.env.STORE_CORS || "*",
       adminCors: process.env.ADMIN_CORS || "*",
